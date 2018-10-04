@@ -16,7 +16,7 @@
         <ul>
             {% for category in categories %}
             <li>
-                <a href="{{ url_for('catalog_items', category_id=category.id) }}">
+                <a href="{{ url_for('catalog_items_by_category_id', category_id=category.id) }}">
                     {{ category.name }}
                 </a>
             </li>
@@ -33,7 +33,7 @@
         <ul>
             {% for item in items %}
             <li>
-                <a href="{{ url_for('catalog_item', category_id=item.category_id, id=item.id) }}">
+                <a href="{{ url_for('catalog_item', id=item.id) }}">
                     {{ item.name }}
                 </a>
             </li>
@@ -46,10 +46,10 @@
         <ul>
             {% for item in items %}
             <li>
-                <a href="{{ url_for('catalog_item', category_id=item.category_id, id=item.id) }}">
+                <a href="{{ url_for('catalog_item', id=item.id) }}">
                     {{ item.name }}
                 </a>
-                <a href=" {{ url_for('catalog_items', category_id=item.category.id) }}">
+                <a href=" {{ url_for('catalog_items_by_category_id', category_id=item.category.id) }}">
                     ({{ item.category.name }})
                 </a>
             </li>

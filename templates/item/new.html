@@ -6,5 +6,19 @@
 </head>
 <body>
 Add Item
+<form action="#" method="post">
+    <p>Title</p>
+    <input type='text' size='30' name='name' value="title">
+    <p>Description</p>
+    <input type="text" size='30' name='detail' value="description">
+    <p>Category</p>
+    <select name="category_id">
+        {% for category in categories %}
+        <option value="{{ category.id }}">{{ category.name }}</option>
+        {% endfor %}
+    </select>
+
+    <input type='submit' value='Submit'>
+</form>
 </body>
 </html>

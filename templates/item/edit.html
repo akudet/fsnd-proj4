@@ -5,6 +5,19 @@
     <title>Edit Item</title>
 </head>
 <body>
-Edit Item
+<form action="#" method="post">
+    <p>Title</p>
+    <input type='text' size='30' name='name' value="{{ item.name }}">
+    <p>Description</p>
+    <input type="text" size='30' name='detail' value="{{ item.detail }}">
+    <p>Category</p>
+    <select name="category_id">
+        {% for category in categories %}
+        <option value="{{ category.id }}" {% if category.id == item.category_id %} selected="selected" {% endif %}>{{ category.name }}</option>
+        {% endfor %}
+    </select>
+
+    <input type='submit' value='Submit'>
+</form>
 </body>
 </html>
