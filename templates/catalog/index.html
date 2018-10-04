@@ -5,6 +5,59 @@
     <title>Catalog App</title>
 </head>
 <body>
-Categories and latest items
+<header>
+    <h1>
+        Catalog App
+    </h1>
+</header>
+<main>
+    <section>
+        <h2>Categories</h2>
+        <ul>
+            {% for category in categories %}
+            <li>
+                <a href="{{ url_for('catalog_items', category_id=category.id) }}">
+                    {{ category.name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section>
+        <a href="{{ url_for('catalog_item_new') }}">Add Item</a>
+        {% if category %}
+        <h2>
+            {{ category.name }} Items ({{ items | length }} items)
+        </h2>
+        <ul>
+            {% for item in items %}
+            <li>
+                <a href="{{ url_for('catalog_item', category_id=item.category_id, id=item.id) }}">
+                    {{ item.name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <h2>
+            Latest Items
+        </h2>
+        <ul>
+            {% for item in items %}
+            <li>
+                <a href="{{ url_for('catalog_item', category_id=item.category_id, id=item.id) }}">
+                    {{ item.name }}
+                </a>
+                <a href=" {{ url_for('catalog_items', category_id=item.category.id) }}">
+                    ({{ item.category.name }})
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+    </section>
+</main>
 </body>
 </html>
