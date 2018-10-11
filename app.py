@@ -17,6 +17,7 @@ DBSession = sessionmaker(bind=engine)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = "login"
 
 # disable oauth2 https check
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -55,8 +56,7 @@ def create_user(name, email):
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("catalog"))
-    # use github by default
-    return redirect(url_for("github.login"))
+    return render_template("catalog/login.html")
 
 
 @app.route("/authorized/github")
@@ -99,6 +99,7 @@ def catalog_items_by_category_id(category_id):
 
 
 @app.route("/catalog/items/new/", methods=["GET", "POST"])
+@login_required
 def catalog_item_new():
     session = DBSession()
     if request.method == "POST":
@@ -125,6 +126,7 @@ def catalog_item(id):
 
 
 @app.route("/catalog/items/<int:id>/edit", methods=["GET", "POST"])
+@login_required
 def catalog_item_edit(id):
     session = DBSession()
     item = session.query(Item).filter_by(id=id).one_or_none()
@@ -144,6 +146,7 @@ def catalog_item_edit(id):
 
 
 @app.route("/catalog/items/<int:id>/delete", methods=["GET", "POST"])
+@login_required
 def catalog_item_delete(id):
     session = DBSession()
     item = session.query(Item).filter_by(id=id).one_or_none()
@@ -169,6 +172,8 @@ def api_items():
         items = session.query(Item).all()
         return jsonify(items=[item.serialize for item in items])
     elif request.method == "POST":
+        if current_user.is_authenticated:
+            return login_manager.unauthorized()
         item = Item()
         item.name = request.args.get("name", "item name")
         item.detail = request.args.get("detail", "item detail")
@@ -188,6 +193,8 @@ def api_item(id):
     if request.method == "GET":
         return jsonify(item=item.serialize)
     elif request.method == "PUT":
+        if current_user.is_authenticated:
+            return login_manager.unauthorized()
         name = request.args.get("name")
         detail = request.args.get("detail")
         category_id = request.args.get("category_id")
@@ -202,6 +209,8 @@ def api_item(id):
         session.commit()
         return jsonify(item=item.serialize)
     elif request.method == "DELETE":
+        if current_user.is_authenticated:
+            return login_manager.unauthorized()
         session.delete(item)
         session.commit()
         return "item deleted"
