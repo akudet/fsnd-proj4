@@ -16,7 +16,7 @@ class User(Base):
         return str(self.id)
 
     def is_authenticated(self):
-        return True;
+        return True
 
     def is_active(self):
         return True

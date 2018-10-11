@@ -2,7 +2,8 @@ import os
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_dance.contrib.github import make_github_blueprint, github
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_login import \
+    LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 
@@ -94,8 +95,8 @@ def catalog_items_by_category_id(category_id):
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(id=category_id).one_or_none()
     items = session.query(Item).filter_by(category_id=category_id).all()
-    return render_template("catalog/index.html",
-                           categories=categories, items=items, category=category)
+    return render_template("catalog/index.html", categories=categories,
+                           items=items, category=category)
 
 
 @app.route("/catalog/items/new/", methods=["GET", "POST"])
@@ -142,7 +143,8 @@ def catalog_item_edit(id):
         return redirect(url_for("catalog_item", id=item.id))
     else:
         categories = session.query(Category).all()
-        return render_template("item/edit.html", item=item, categories=categories)
+        return render_template("item/edit.html", item=item,
+                               categories=categories)
 
 
 @app.route("/catalog/items/<int:id>/delete", methods=["GET", "POST"])
@@ -178,7 +180,8 @@ def api_items():
         item.name = request.args.get("name", "item name")
         item.detail = request.args.get("detail", "item detail")
         item.category_id = request.args.get("category_id", 0)
-        category = session.query(Category).filter_by(id=item.category_id).one_or_none()
+        category = session.query(Category) \
+            .filter_by(id=item.category_id).one_or_none()
         if category is None:
             category = session.query(Category).one()
             item.category_id = category.id
@@ -198,7 +201,8 @@ def api_item(id):
         name = request.args.get("name")
         detail = request.args.get("detail")
         category_id = request.args.get("category_id")
-        category = session.query(Category).filter_by(id=category_id).one_or_none()
+        category = session.query(Category) \
+            .filter_by(id=category_id).one_or_none()
         if name:
             item.name = name
         if detail:
