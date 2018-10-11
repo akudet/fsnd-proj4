@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 
@@ -87,7 +87,59 @@ def catalog_item_delete(id):
         session.commit()
         return redirect(url_for("catalog"))
     else:
-        return redirect(url_for("catalog_item", id=item.id))
+        return render_template("item/delete.html", item=item)
+
+
+@app.route("/api/v1/catalog/<int:category_id>/item")
+def api_catalog_items_by_category_id(category_id):
+    session = DBSession()
+    items = session.query(Item).filter_by(category_id=category_id).all()
+    return jsonify(items=[item.serialize for item in items])
+
+
+@app.route("/api/v1/catalog/items", methods=["GET", "POST"])
+def api_items():
+    session = DBSession()
+    if request.method == "GET":
+        items = session.query(Item).all()
+        return jsonify(items=[item.serialize for item in items])
+    elif request.method == "POST":
+        item = Item()
+        item.name = request.args.get("name", "item name")
+        item.detail = request.args.get("detail", "item detail")
+        item.category_id = request.args.get("category_id", 0)
+        category = session.query(Category).filter_by(id=item.category_id).one_or_none()
+        if category is None:
+            category = session.query(Category).one()
+            item.category_id = category.id
+        session.add(item)
+        session.commit()
+
+
+@app.route("/api/v1/catalog/items/<int:id>", methods=["GET", "PUT", "DELETE"])
+def api_item(id):
+    session = DBSession()
+    item = session.query(Item).filter_by(id=id).one()
+    if request.method == "GET":
+        return jsonify(item=item.serialize)
+    elif request.method == "PUT":
+        name = request.args.get("name")
+        detail = request.args.get("detail")
+        category_id = request.args.get("category_id")
+        category = session.query(Category).filter_by(id=category_id).one_or_none()
+        if name:
+            item.name = name
+        if detail:
+            item.detail = detail
+        if category:
+            item.category_id = category_id
+        session.add(item)
+        session.commit()
+        return jsonify(item=item.serialize)
+    elif request.method == "DELETE":
+        session.delete(item)
+        session.commit()
+        return "item deleted"
 
 
 if __name__ == "__main__":

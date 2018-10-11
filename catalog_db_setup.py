@@ -13,6 +13,13 @@ class Category(Base):
 
     items = relationship("Item", backref="category", order_by="Item.name")
 
+    @property
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
+
 
 class Item(Base):
     __tablename__ = 'item'
@@ -21,6 +28,14 @@ class Item(Base):
     name = Column(String(80), nullable=False)
     detail = Column(String(250))
     category_id = Column(Integer, ForeignKey('category.id'))
+
+    @property
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "detail": self.detail,
+        }
 
 
 def add_fake_data():
