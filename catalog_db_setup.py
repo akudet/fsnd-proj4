@@ -5,6 +5,23 @@ from sqlalchemy.orm import relationship, Session
 Base = declarative_base()
 
 
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False)
+    email = Column(String(250), nullable=False)
+
+    def get_id(self):
+        return str(self.id)
+
+    def is_authenticated(self):
+        return True;
+
+    def is_active(self):
+        return True
+
+
 class Category(Base):
     __tablename__ = 'category'
 

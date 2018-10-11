@@ -1,8 +1,12 @@
+import os
+
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask_dance.contrib.github import make_github_blueprint, github
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 
-from catalog_db_setup import Category, Base, Item
+from catalog_db_setup import Category, Base, Item, User
 
 app = Flask(__name__)
 
@@ -10,6 +14,67 @@ engine = create_engine('sqlite:///item_catalog.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# disable oauth2 https check
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+app.secret_key = "supersekrit"
+blueprint = make_github_blueprint(
+    client_id="ff51fa522d0edcaa86c7",
+    client_secret="01961dc18f0134f912bda65e6dd98f6ae5b07ef4",
+    redirect_to="login_github"
+)
+app.register_blueprint(blueprint, url_prefix="/login")
+
+
+@login_manager.user_loader
+def get_user_by_id(user_id):
+    session = DBSession()
+    return session.query(User).filter_by(id=int(user_id)).one_or_none()
+
+
+def get_user_by_email(email):
+    session = DBSession()
+    return session.query(User).filter_by(email=email).one_or_none()
+
+
+def create_user(name, email):
+    session = DBSession()
+    user = User()
+    user.name = name
+    user.email = email
+    session.add(user)
+    session.commit()
+    return user
+
+
+@app.route("/login")
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("catalog"))
+    # use github by default
+    return redirect(url_for("github.login"))
+
+
+@app.route("/authorized/github")
+def login_github():
+    if github.authorized:
+        resp = github.get("/user").json()
+        user = get_user_by_email(resp["email"])
+        if user is None:
+            user = create_user(resp["name"], resp["email"])
+        login_user(user)
+        return redirect(url_for("catalog"))
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("catalog"))
 
 
 @app.route("/")
