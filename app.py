@@ -1,6 +1,7 @@
 import os
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, \
+    redirect, url_for, jsonify, flash
 from flask_dance.contrib.github import make_github_blueprint, github
 from flask_login import \
     LoginManager, login_user, login_required, logout_user, current_user
@@ -132,6 +133,7 @@ def catalog_item_new():
             item.detail = request.form["detail"]
         if request.form["category_id"]:
             item.category_id = request.form["category_id"]
+        item.owner_id = current_user.id
         session.add(item)
         session.commit()
         return redirect(url_for("catalog_item", id=item.id))
@@ -162,6 +164,10 @@ def catalog_item_edit(id):
     """
     session = DBSession()
     item = session.query(Item).filter_by(id=id).one_or_none()
+    print(item.owner_id, current_user.id)
+    if item.owner_id != current_user.id:
+        flash("You can only edit your own items!")
+        return redirect(url_for("catalog_item", id=id))
     if request.method == "POST":
         if request.form['name']:
             item.name = request.form["name"]
@@ -188,6 +194,9 @@ def catalog_item_delete(id):
     """
     session = DBSession()
     item = session.query(Item).filter_by(id=id).one_or_none()
+    if item.owner_id != current_user.id:
+        flash("You can only delete your own items!")
+        return redirect(url_for("catalog_item", id=id))
     if request.method == "POST":
         session.delete(item)
         session.commit()
@@ -230,6 +239,7 @@ def api_items():
         if category is None:
             category = session.query(Category).one()
             item.category_id = category.id
+        item.owner_id = current_user.id
         session.add(item)
         session.commit()
 
@@ -248,6 +258,8 @@ def api_item(id):
     elif request.method == "PUT":
         if current_user.is_authenticated:
             return login_manager.unauthorized()
+        if item.owner_id != current_user.id:
+            return "You can only edit your own items!"
         name = request.args.get("name")
         detail = request.args.get("detail")
         category_id = request.args.get("category_id")
@@ -265,6 +277,8 @@ def api_item(id):
     elif request.method == "DELETE":
         if current_user.is_authenticated:
             return login_manager.unauthorized()
+        if item.owner_id != current_user.id:
+            return "You can only delete your own items!"
         session.delete(item)
         session.commit()
         return "item deleted"

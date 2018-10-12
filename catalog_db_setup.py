@@ -45,6 +45,8 @@ class Item(Base):
     name = Column(String(80), nullable=False)
     detail = Column(String(250))
     category_id = Column(Integer, ForeignKey('category.id'))
+    owner_id = Column(Integer, ForeignKey("user.id"))
+    owner = relationship("User", )
 
     @property
     def serialize(self):
@@ -56,17 +58,22 @@ class Item(Base):
 
 
 def add_fake_data():
+    admin = User()
+    admin.name = "Administrator"
+    admin.email = "admin@localhost"
+    session.add(admin)
+
     dessert = Category(name="Dessert")
-    dessert.items.append(Item(name="Cakes"))
-    dessert.items.append(Item(name="Cookies"))
-    dessert.items.append(Item(name="Pies"))
+    dessert.items.append(Item(name="Cakes", owner=admin))
+    dessert.items.append(Item(name="Cookies", owner=admin))
+    dessert.items.append(Item(name="Pies", owner=admin))
     session.add(dessert)
 
     noodles = Category(name="Noodles")
-    noodles.items.append(Item(name="Fried Noodles"))
-    noodles.items.append(Item(name="Instant Noodles"))
-    noodles.items.append(Item(name="Ramen"))
-    noodles.items.append(Item(name="Paomo"))
+    noodles.items.append(Item(name="Fried Noodles", owner=admin))
+    noodles.items.append(Item(name="Instant Noodles", owner=admin))
+    noodles.items.append(Item(name="Ramen", owner=admin))
+    noodles.items.append(Item(name="Paomo", owner=admin))
     session.add(noodles)
 
     session.commit()
