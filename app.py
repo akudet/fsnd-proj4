@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, render_template, request, \
     redirect, url_for, jsonify, flash
+from flask_dance.contrib.azure import make_azure_blueprint, azure
 from flask_dance.contrib.github import make_github_blueprint, github
 from flask_login import \
     LoginManager, login_user, login_required, logout_user, current_user
@@ -25,12 +26,18 @@ login_manager.login_view = "login"
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 app.secret_key = "supersekrit"
-blueprint = make_github_blueprint(
+github_bp = make_github_blueprint(
     client_id="ff51fa522d0edcaa86c7",
     client_secret="01961dc18f0134f912bda65e6dd98f6ae5b07ef4",
-    redirect_to="login_github"
+    redirect_to="authorized_github"
 )
-app.register_blueprint(blueprint, url_prefix="/login")
+app.register_blueprint(github_bp, url_prefix="/login")
+azure_bp = make_azure_blueprint(
+    client_id="0cd36578-7d2d-46ac-897a-d5edde683a7d",
+    client_secret="wzTOHZ8391(ihinkJCI3~)^",
+    redirect_to="authorized_azure"
+)
+app.register_blueprint(azure_bp, url_prefix="/login")
 
 
 @login_manager.user_loader
@@ -62,7 +69,7 @@ def login():
 
 
 @app.route("/authorized/github")
-def login_github():
+def authorized_github():
     """
     flask dance is configured to redirect here, if user is
     successfully authorized using github oauth2
@@ -76,6 +83,19 @@ def login_github():
         user = get_user_by_email(resp["email"])
         if user is None:
             user = create_user(resp["name"], resp["email"])
+        login_user(user)
+        return redirect(url_for("catalog"))
+
+
+@app.route("/authorized/azure")
+def authorized_azure():
+    if azure.authorized:
+        resp = azure.get("/v1.0/me").json()
+        name = resp["displayName"]
+        email = resp["userPrincipalName"]
+        user = get_user_by_email(email)
+        if user is None:
+            user = create_user(name, email)
         login_user(user)
         return redirect(url_for("catalog"))
 
