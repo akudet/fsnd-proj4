@@ -25,10 +25,9 @@ beside libraries installed in the vm, you also need
 * Flask-Dance
 * Flask-Login
 
-you can install them by
+you can install all libraries needed  by
 ```
-pip install Flask-Dance
-pip install Flask-Login
+pip install -r requirements.txt
 ```
 Download this project and setup databse
 ```
