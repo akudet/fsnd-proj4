@@ -62,6 +62,14 @@ def login():
 
 @app.route("/authorized/github")
 def login_github():
+    """
+    flask dance is configured to redirect here, if user is
+    successfully authorized using github oauth2
+    it will use the token to access user info, and login
+    the corresponding user by it's email if find one, otherwise
+    it will create a new user use info retrieved from github before login
+    :return:
+    """
     if github.authorized:
         resp = github.get("/user").json()
         user = get_user_by_email(resp["email"])
@@ -81,6 +89,10 @@ def logout():
 @app.route("/")
 @app.route("/catalog/")
 def catalog():
+    """
+    catalog app home page, it will show all categories and latest items added
+    :return:
+    """
     session = DBSession()
     categories = session.query(Category).all()
     items = session.query(Item).order_by(desc(Item.id)).limit(5).all()
@@ -91,6 +103,11 @@ def catalog():
 @app.route("/catalog/<int:category_id>/")
 @app.route("/catalog/<int:category_id>/items/")
 def catalog_items_by_category_id(category_id):
+    """
+    catalog app home, showing a specific category item
+    :param category_id:
+    :return:
+    """
     session = DBSession()
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(id=category_id).one_or_none()
@@ -102,6 +119,10 @@ def catalog_items_by_category_id(category_id):
 @app.route("/catalog/items/new/", methods=["GET", "POST"])
 @login_required
 def catalog_item_new():
+    """
+    endpoint for get a view to create a new item and add item
+    :return:
+    """
     session = DBSession()
     if request.method == "POST":
         item = Item()
@@ -121,6 +142,11 @@ def catalog_item_new():
 
 @app.route("/catalog/items/<int:id>/")
 def catalog_item(id):
+    """
+    view for individual item
+    :param id: item_id of the item will be shown
+    :return:
+    """
     session = DBSession()
     item = session.query(Item).filter_by(id=id).one_or_none()
     return render_template("item/index.html", item=item)
@@ -129,6 +155,11 @@ def catalog_item(id):
 @app.route("/catalog/items/<int:id>/edit", methods=["GET", "POST"])
 @login_required
 def catalog_item_edit(id):
+    """
+    endpoint for a view to edit and update item
+    :param id: item id to update
+    :return:
+    """
     session = DBSession()
     item = session.query(Item).filter_by(id=id).one_or_none()
     if request.method == "POST":
@@ -150,6 +181,11 @@ def catalog_item_edit(id):
 @app.route("/catalog/items/<int:id>/delete", methods=["GET", "POST"])
 @login_required
 def catalog_item_delete(id):
+    """
+    endpoint for a view of confirm delete of a item and delete item
+    :param id: item id of the item want to delete
+    :return:
+    """
     session = DBSession()
     item = session.query(Item).filter_by(id=id).one_or_none()
     if request.method == "POST":
@@ -162,6 +198,11 @@ def catalog_item_delete(id):
 
 @app.route("/api/v1/catalog/<int:category_id>/item")
 def api_catalog_items_by_category_id(category_id):
+    """
+    json endpoint for obtains all items by it's category
+    :param category_id:
+    :return:
+    """
     session = DBSession()
     items = session.query(Item).filter_by(category_id=category_id).all()
     return jsonify(items=[item.serialize for item in items])
@@ -169,6 +210,10 @@ def api_catalog_items_by_category_id(category_id):
 
 @app.route("/api/v1/catalog/items", methods=["GET", "POST"])
 def api_items():
+    """
+    json endpoint for obtains all items, and create new item
+    :return:
+    """
     session = DBSession()
     if request.method == "GET":
         items = session.query(Item).all()
@@ -191,6 +236,11 @@ def api_items():
 
 @app.route("/api/v1/catalog/items/<int:id>", methods=["GET", "PUT", "DELETE"])
 def api_item(id):
+    """
+    json endpoint for get, update, delete an item
+    :param id: item id of the item to operate
+    :return:
+    """
     session = DBSession()
     item = session.query(Item).filter_by(id=id).one()
     if request.method == "GET":
