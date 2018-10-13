@@ -6,6 +6,9 @@ Base = declarative_base()
 
 
 class User(Base):
+    """
+    Registered user information
+    """
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
@@ -23,6 +26,9 @@ class User(Base):
 
 
 class Category(Base):
+    """
+    Category of individual item
+    """
     __tablename__ = 'category'
 
     id = Column(Integer, primary_key=True)
@@ -39,6 +45,9 @@ class Category(Base):
 
 
 class Item(Base):
+    """
+    Individual item, a item can only have a single category
+    """
     __tablename__ = 'item'
 
     id = Column(Integer, primary_key=True)
@@ -54,6 +63,8 @@ class Item(Base):
             "id": self.id,
             "name": self.name,
             "detail": self.detail,
+            "category_id": self.category_id,
+            "owner_id": self.owner_id,
         }
 
 
